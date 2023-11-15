@@ -6,33 +6,42 @@ import torch
 from torchvision import transforms
 
 class Load_OULU(Dataset):
-    def __init__(self,root_dir=None,use='Train',protocol='not protocol',transforms=None,only_true=False,UUID=-1):
+    def __init__(self,root_dir=None,train=True,protocol='not protocol',transforms=None,only_true=False,UUID=-1):
         super(Load_OULU, self).__init__()
-        self.root_dir=root_dir
+        self.root_dir=os.path.join(root_dir,"OULU")
         self.protocol=protocol
         self.image_paths=[]
         self.labels=[]
         self.transforms=transforms
-        dir_path=os.path.join(self.root_dir,protocol,use)
-        paths=self.list_all_files(dir_path)
+        self.UUID=UUID
         if protocol=='not protocol':
             if train:
+                for root, dirs, files in os.walk(self.root_dir):
+                    for file in files:
+                        path=os.path.join(root, file)
+                        if file.endswith('.png') and "train" in file and path not in self.image_paths:
+                            self.image_paths.append(path)
+                            if "+1" in path:
+                                self.labels.append(1)
+                            else:
+                                self.labels.append(0)
 
         else:
-            if only_true:
-                for i in range(len(paths)):
-                    label=paths[i].split('\\')[-2]
-                    if label=='+1':
-                        self.labels.append(1)
-                        self.image_paths.append(paths[i])
+            if train:
+                dir_path=self.list_all_files(os.path.join(self.root_dir,protocol,'train'))
             else:
-                self.image_paths=self.list_all_files(os.path.join(self.root_dir,protocol,use))
-                for i in range(len(self.image_paths)):
-                    label=self.image_paths[i].split('\\')[-2]
-                    if label=='+1':
-                        self.labels.append(1)
-                    else:
-                        self.labels.append(0)
+                dir_path = self.list_all_files(os.path.join(self.root_dir, protocol, 'test'))
+
+            for root,dirs,files in os.walk(dir_path):
+                for file in files:
+                    path=os.path.join(root,file)
+                    if(file.endswith(".png")):
+                        self.image_paths.append(path)
+                        if "+1" in path:
+                            self.labels.append(1)
+                        else:
+                            self.labels.append(0)
+
     def __getitem__(self, idx):
         image_path = self.image_paths[idx]
         label = self.labels[idx]
@@ -41,7 +50,7 @@ class Load_OULU(Dataset):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         if self.transforms is not None:
             image = self.transforms(image)
-        return image, label
+        return image, label,self.UUID
 
     def __len__(self):
         return len(self.image_paths)
