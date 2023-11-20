@@ -37,6 +37,6 @@ class Load_Replay(Dataset):
         return image, label,self.UUID
 
     def __len__(self):
-        return len(self.image_paths)
+        return len(self.img_paths)
 
 

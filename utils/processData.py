@@ -10,7 +10,26 @@ import torch
 from torchvision import transforms
 from configs import parse
 import numpy as np
-from networks import model_utils
+
+def extract_face(img_path):
+    detector = dlib.get_frontal_face_detector()
+    img=cv2.imread(img_path)
+    dets=detector(img,1)
+    if not dets:
+        print(f'Failed to detector face {img_path}')
+    for i, d in enumerate(dets):
+        x1 = d.top() if d.top() > 0 else 0
+        y1 = d.bottom() if d.bottom() > 0 else 0
+        x2 = d.left() if d.left() > 0 else 0
+        y2 = d.right() if d.right() > 0 else 0
+
+        if not os.path.exists(os.path.dirname(img_path)):
+            try:
+                os.makedirs(os.path.dirname(img_path))
+            except:
+                print('error')
+        face = img[x1:y1, x2:y2]
+        cv2.imwrite(img_path, face)
 def process_video_OULU( video_path, root_dir, p, t, label, img_use):
     detector = dlib.get_frontal_face_detector()
     video = cv2.VideoCapture(os.path.join(root_dir, img_use, video_path))
@@ -185,7 +204,12 @@ def process_single_video_Replay(video_path, root_dir, img_use):
 
 
 
-root = 'F:\\Replay'
-video_path=list_all_files(os.path.join(root,'train'))
+dir=[]
+for root,dirs,files in os.walk("F:\\FAS\\MSU-MFSD\\pics"):
+    for file in files:
+        if file.endswith('.jpg'):
+            dir.append(os.path.join(root,file))
+for i in dir:
+    extract_face(i)
 
-process_single_video_Replay(video_path[0],root,'train')
+

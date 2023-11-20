@@ -19,7 +19,17 @@ class Load_OULU(Dataset):
                 for root, dirs, files in os.walk(self.root_dir):
                     for file in files:
                         path=os.path.join(root, file)
-                        if file.endswith('.png') and "train" in file and path not in self.image_paths:
+                        if file.endswith('.png') and "Train" in file and path not in self.image_paths:
+                            self.image_paths.append(path)
+                            if "+1" in path:
+                                self.labels.append(1)
+                            else:
+                                self.labels.append(0)
+            else:
+                for root, dirs, files in os.walk(self.root_dir):
+                    for file in files:
+                        path=os.path.join(root, file)
+                        if file.endswith('.png') and "Test" in file and path not in self.image_paths:
                             self.image_paths.append(path)
                             if "+1" in path:
                                 self.labels.append(1)
